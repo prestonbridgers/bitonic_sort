@@ -71,7 +71,7 @@ merge_bitonic(int *arr, const int arr_size, short order)
 
     // Merge the array
     for (i = 0; i < half; i++) {
-        if (order == arr[i] > arr[i+half]) {
+        if (order == (arr[i] > arr[i+half])) {
             int tmp = arr[i];
             arr[i] = arr[i+half];
             arr[i+half] = tmp;
