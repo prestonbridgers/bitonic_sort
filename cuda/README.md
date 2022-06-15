@@ -1,1 +1,1 @@
-# Bitonic Sorc Cuda Implementation
+# Bitonic Sort Cuda Implementation
