@@ -109,24 +109,42 @@ sort_bitonic(int *arr, const int arr_size, short order)
     merge_bitonic(arr, arr_size, order);
 }
 
+/* Prints the usage of the program at the command line and exits the program.
+ */
+void
+print_usage(int argc, char **argv)
+{
+    printf("usage: %s array_size\n", argv[0]);
+    printf("  array_size: The given number, n, will result in an array of size"
+           " 2^n elements (n must be larger than 0).\n");
+    exit(1);
+}
 
-/* The main function. TODO: Write this better.
+/* This program performs a bitonic sort in ascending or descending order
+ * on a size of 2^k where both k and the order are given as command line
+ * arguments.
+ *
+ * The program outputs the time taken to sort the array.
  */
 int main(int argc, char *argv[])
 {
-    // TODO: Fix crude argument handling
-    if (argc < 2) exit(1);
-
-    // Declare clock times for timing output
     struct timeval tv1, tv2;
     double delta;
+    int exponent;
+    int arr_size;
+    int *arr;
+
+    // Check arguments
+    if (argc < 2) print_usage(argc, argv);
+    exponent = atoi(argv[1]);
+    if (exponent == 0) print_usage(argc, argv);
 
     // Seed random number generator
 	srand(time(NULL));
 
     // Allocate and initialize the array
-    const int arr_size = pow(2, atoi(argv[1]));
-    int *arr = malloc(arr_size * sizeof(*arr));
+    arr_size = pow(2, exponent);
+    arr = malloc(arr_size * sizeof(*arr));
     init_array(arr, arr_size);
 
     // Perform the sort and time it
@@ -136,7 +154,7 @@ int main(int argc, char *argv[])
     delta = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
             (double) (tv2.tv_sec - tv1.tv_sec);
 
-    // Print time elapsed
+    // Print time elapsed before exiting
     printf("Time: %.5f\n", delta);
 	return EXIT_SUCCESS;	
 }
