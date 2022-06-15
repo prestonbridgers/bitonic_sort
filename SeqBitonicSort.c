@@ -83,7 +83,12 @@ merge_bitonic(int *arr, const int arr_size, short order)
     merge_bitonic(&arr[half], half, order);
 }
 
-/* Performs a bitonic sort.
+/* Performs a bitonic sort on an array arr of size arr_size in
+ * ASCENDING or DESCENDING order.
+ *
+ * arr      - The array to sort.
+ * arr_size - The size of the array (number of elements).
+ * order    - The order in which to sort the array (ASCENDING or DESCENDING).
  */
 void
 sort_bitonic(int *arr, const int arr_size, short order)
@@ -124,19 +129,12 @@ int main(int argc, char *argv[])
     int *arr = malloc(arr_size * sizeof(*arr));
     init_array(arr, arr_size);
 
-    // Print the array before the sort
-    /* print_array(arr, arr_size, "Before the sort"); */
-
     // Perform the sort and time it
     gettimeofday(&tv1, NULL);
     sort_bitonic(arr, arr_size, ASCENDING);
     gettimeofday(&tv2, NULL);
     delta = (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
             (double) (tv2.tv_sec - tv1.tv_sec);
-
-    // Print the array after the sort
-    /* printf("\n"); */
-    /* print_array(arr, arr_size, "After the sort"); */
 
     // Print time elapsed
     printf("Time: %.5f\n", delta);
