@@ -1,1 +1,1 @@
-# Bitonic Sort OpemMPI Implementation
+# Bitonic Sort OpenMPI Implementation
