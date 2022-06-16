@@ -284,23 +284,42 @@ compareAndSwap(int data[],int i, int j) {
 *
 */
 int 
-main(int argc, char *argv[]) {
+main(int * argc, char **argv[]) {
 
     int * dataSet = NULL;
     int * temp = NULL;
+    char * buff = NULL;
+    int * buf = NULL;
+    int exp, numP, myId;
 
-    int exp;
+    // Initialize the MPI environment
+    MPI_Init(argc,argv);
 
-    // Ask the user to type a number
+    // Get the number of processes
+    MPI_Comm_size(MPI_COMM_WORLD, &numP);
+
+    // Get the ID of the process
+    MPI_Comm_rank(MPI_COMM_WORLD, &myId);
+
+
+    // Ask the user for input arguments
     printf("Give a input x that will be used to create the size of the data set (2^x)\n");
 
     // Get and save the number the user types
     scanf("%d", &exp);
-
+    // 2^X (X being our input to make sure we only work with numbers the Bitonic sort can handle)
     int size = pow(2, exp);
+
+    /* 
+        Implement a user input check here
+    */
+
+    MPI_Barrier(MPI_COMM_WORLD);
 
     dataSet = malloc (sizeof(int) * size);
     temp = malloc (sizeof(int) * size);
+    buff = malloc (sizeof(char) * size);
+    buf = malloc (sizeof(int) * size);
 
     generateDataSet(dataSet,size);
 
@@ -313,20 +332,28 @@ main(int argc, char *argv[]) {
     print_array(dataSet,size,"Randomized DataSet");
 
     //1) Masterhandshake
-    //void masterHandshake(char buff[],int numprocs,int BUFSIZE,int TAG,MPI_Status &stat)
+    // masterHandshake(char buff[],int numprocs,int BUFSIZE,int TAG,MPI_Status *stat)
+    //masterHandshake(buff,numP,size,??,??);
 
     //2) slavehandshake
+    //slaveHandshake(char buff[],int numprocs,int BUFSIZE,int TAG,MPI_Status *stat,int myid) {
+    //slaveHandshake(buff,numP,size,??,??,myId);
 
     //3) distributeIntarray
+    //distributeIntArray(int numprocs,int dataSet[],int SIZE)
+    //distributeIntArray(numP,dataSet,size);
 
     //4) sendIntArray
+    //sendIntArray(int numprocs,int dataSet[],int SIZE,int target)
+    //sendIntArray(numP,dataSet,size,??);
 
     //5) reciveInt array
+    // recieveIntArray(int buf[],int len,MPI_Status *stat,int from)
+    //recieveIntArray(buf,??,??,??);
 
     //6) Bitonic sort
+    //bitonicSort(??,size,dataSet);
 
-
-    //bitonicSort(0,size,dataSet);
-
-
+    MPI_Finalize();
+    return 0;
 }
