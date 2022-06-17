@@ -17,6 +17,11 @@ June 15, 2022: 9am-11am (Got the sequential bitonic sort working)
 
 June 15, 2022: 2pm-4pm (Class Time: Started cuda implementation)
 
+June 16, 2022: 2pm-4pm (Class Time: Thinking...)
+
+June 17, 2022: 10am-11am (Setup the cuda code with makefiles, helpers, etc.
+Can't get any print outs from the kernels...)
+
 ### Jacob Villemagne
 
 June 15, 2022: 2pm-4pm (Class Time: Started OpenMPI implementation)
