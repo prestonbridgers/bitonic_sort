@@ -5,9 +5,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
 #include <cuda_runtime.h>
-#include <cuda.h>
 #include <math.h>
 #include "helpers.h"
 #include "wrappers.h"
@@ -20,13 +20,14 @@ __global__ void
 d_bitonic_merge_kernel(int *arr, int size)
 {
     int i;
-    int start_idx = (blockDim.x*gridDim.x+threadIdx.x) * size;
+    int start_idx = threadIdx.x * size;
     int half = size / 2;
     int end_idx = start_idx + half;
 
-    printf("[%d] start: %d\tend: %d\n", threadIdx.x, start_idx, end_idx);
+    printf("[%d] size: %d\tstart: %d\tend: %d\n", threadIdx.x, size, start_idx, end_idx + half - 1);
     for (i = start_idx; i < end_idx; i++) {
-        printf("[%d] comparing: %d and %d\n", threadIdx.x, arr[i], arr[i+half]);
+        /* printf("[%d] comparing: %d and %d\n", threadIdx.x, arr[i], arr[i+half]); */
+        printf("[%d] comparing: %d and %d\n", threadIdx.x, i, i+half);
     }
 }
 
@@ -39,9 +40,15 @@ d_bitonic_merge_kernel(int *arr, int size)
 void
 bitonic_sort(int *arr, int size)
 {
-    int num_elems_per_subarray = 2;
+    int num_elems_per_subarray = 1;
     int num_subarrays = size / num_elems_per_subarray;
     int num_threads = num_subarrays / 2;
+
+    // Copying array to cuda device
+    int *d_arr;
+    cudaMalloc((void**)&d_arr, size * sizeof(int));
+    cudaMemcpy(d_arr, arr, size, H2D);
+    CUERR;
 
     while (num_elems_per_subarray != size)
     {
@@ -52,13 +59,16 @@ bitonic_sort(int *arr, int size)
         // Each thread in the block will have 2 subarrays to merge
         dim3 grid(1,1,1);
         dim3 block(num_threads,1,1);
-        d_bitonic_merge_kernel<<<grid, block>>>(arr, 2*num_elems_per_subarray);
+        d_bitonic_merge_kernel<<<grid, block>>>(d_arr, 2*num_elems_per_subarray);
         CUERR;
+
+        sleep(1);
 
         num_elems_per_subarray *= 2;
         num_subarrays = size / num_elems_per_subarray;
         num_threads = num_subarrays / 2;
     }
+    cudaFree(d_arr);
 }
 
 /* Initializes a given integer array of a given size to random numbers

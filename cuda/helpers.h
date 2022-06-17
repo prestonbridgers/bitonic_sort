@@ -23,8 +23,6 @@
             printf("Cuda error: %s: %s, line %d\n", cudaGetErrorString(err),   \
                     __FILE__, __LINE__);                                       \
             exit(1);                                                           \
-        } else {                                                               \
-            printf("Cuda kernel launched successfully\n");                     \
         }                                                                      \
     }
 
