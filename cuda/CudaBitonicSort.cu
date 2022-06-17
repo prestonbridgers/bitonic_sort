@@ -23,14 +23,26 @@ d_bitonic_merge_kernel(int *arr, int size)
     int start_idx = threadIdx.x * size;
     int half = size / 2;
     int end_idx = start_idx + half;
+    int order = !(threadIdx.x % 2);
 
-    printf("[%d] size: %d\tstart: %d\tend: %d\n",
-            threadIdx.x, size, start_idx, end_idx + half - 1);
+    printf("[%d] size: %d\tstart: %d\tend: %d\torder: %d\n",
+            threadIdx.x, size, start_idx, end_idx + half - 1, order);
     for (i = start_idx; i < end_idx; i++) {
         printf("[%d] comparing: %d and %d\n",
                threadIdx.x, arr[i], arr[i+half]);
-        /* printf("[%d] comparing: %d and %d\n", threadIdx.x, i, i+half); */
+
+        // Perform the swap if needed
+        if (order == (arr[i] > arr[i+half])) {
+            int tmp = arr[i];
+            arr[i] = arr[i+half];
+            arr[i+half] = tmp;
+        }
+
+        printf("[%d] After Swap: %d and %d\n",
+               threadIdx.x, arr[i], arr[i+half]);
     }
+
+    // Split and sort some more :)
 }
 
 
@@ -45,6 +57,7 @@ bitonic_sort(int *arr, int size)
     int num_elems_per_subarray = 1;
     int num_subarrays = size / num_elems_per_subarray;
     int num_threads = num_subarrays / 2;
+    int stage = 1;
 
     // Copying array to cuda device
     int *d_arr;
@@ -54,8 +67,10 @@ bitonic_sort(int *arr, int size)
 
     while (num_elems_per_subarray != size)
     {
-        printf("num_elems_per_subarray: %d\nnum_blocks: %d\nnum_threads: %d\n\n",
-                num_elems_per_subarray, num_subarrays, num_threads);
+        /* printf("num_elems_per_subarray: %d\nnum_blocks: %d\nnum_threads: %d\n\n", */
+        /*         num_elems_per_subarray, num_subarrays, num_threads); */
+        printf("\n~~~~~~~~~~~~~~~~~~~~~~~Stage %d~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
+                stage);
 
         // Call kernel with grid=1,1,1 block=num_threads,1,1
         // Each thread in the block will have 2 subarrays to merge
@@ -64,12 +79,16 @@ bitonic_sort(int *arr, int size)
         d_bitonic_merge_kernel<<<grid, block>>>(d_arr, 2*num_elems_per_subarray);
         CUERR;
 
-        sleep(1);
+        usleep(500000);
 
         num_elems_per_subarray *= 2;
         num_subarrays = size / num_elems_per_subarray;
         num_threads = num_subarrays / 2;
+        stage += 1;
     }
+
+    cudaMemcpy(arr, d_arr, size * sizeof(int), D2H);
+    CUERR;
     cudaFree(d_arr);
 }
 
@@ -145,11 +164,14 @@ main(int argc, char *argv[])
     arr = (int*) malloc(arr_size * sizeof(*arr));
     init_array(arr, arr_size);
 
+    char label1[] = "Before";
+    print_array(arr, arr_size, label1);
+
     // Perform the sort
     bitonic_sort(arr, arr_size);
 
-    char label[] = "Init";
-    print_array(arr, arr_size, label);
+    char label2[] = "\nAfter";
+    print_array(arr, arr_size, label2);
 
 	return EXIT_SUCCESS;	
 }
