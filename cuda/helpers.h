@@ -20,9 +20,11 @@
     #define CUERR {                                                            \
         cudaError_t err;                                                       \
         if ((err = cudaGetLastError()) != cudaSuccess) {                       \
-            std::cout << "CUDA error: " << cudaGetErrorString(err) << " : "    \
-                      << __FILE__ << ", line " << __LINE__ << std::endl;       \
+            printf("Cuda error: %s: %s, line %d\n", cudaGetErrorString(err),   \
+                    __FILE__, __LINE__);                                       \
             exit(1);                                                           \
+        } else {                                                               \
+            printf("Cuda kernel launched successfully\n");                     \
         }                                                                      \
     }
 

@@ -18,7 +18,7 @@ OBJS = wrappers.o CudaBitonicSort.o
 	$(NVCC) $(NVCCFLAGS) $(GENCODE_FLAGS) $< -o $@
 
 sort: $(OBJS)
-	$(CC) $(OBJS) -L/usr/local/cuda/lib64 -lcuda -lcudart -o $@
+	$(CC) $(OBJS) -L/usr/local/cuda/lib64 -lm -lcuda -lcudart -o $@
 
 CudaBitonicSort.o: CudaBitonicSort.cu helpers.h wrappers.h
 
