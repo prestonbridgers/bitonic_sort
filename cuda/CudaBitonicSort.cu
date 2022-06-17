@@ -27,9 +27,9 @@ d_bitonic_merge_kernel(int *arr, int size)
     printf("[%d] size: %d\tstart: %d\tend: %d\n",
             threadIdx.x, size, start_idx, end_idx + half - 1);
     for (i = start_idx; i < end_idx; i++) {
-        /* printf("[%d] comparing: %d and %d\n", */
-        /*        threadIdx.x, arr[i], arr[i+half]); */
-        printf("[%d] comparing: %d and %d\n", threadIdx.x, i, i+half);
+        printf("[%d] comparing: %d and %d\n",
+               threadIdx.x, arr[i], arr[i+half]);
+        /* printf("[%d] comparing: %d and %d\n", threadIdx.x, i, i+half); */
     }
 }
 
@@ -49,7 +49,7 @@ bitonic_sort(int *arr, int size)
     // Copying array to cuda device
     int *d_arr;
     cudaMalloc((void**)&d_arr, size * sizeof(int));
-    cudaMemcpy(d_arr, arr, size, H2D);
+    cudaMemcpy(d_arr, arr, size * sizeof(int), H2D);
     CUERR;
 
     while (num_elems_per_subarray != size)
