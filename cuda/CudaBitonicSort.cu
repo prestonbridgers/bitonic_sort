@@ -24,9 +24,11 @@ d_bitonic_merge_kernel(int *arr, int size)
     int half = size / 2;
     int end_idx = start_idx + half;
 
-    printf("[%d] size: %d\tstart: %d\tend: %d\n", threadIdx.x, size, start_idx, end_idx + half - 1);
+    printf("[%d] size: %d\tstart: %d\tend: %d\n",
+            threadIdx.x, size, start_idx, end_idx + half - 1);
     for (i = start_idx; i < end_idx; i++) {
-        /* printf("[%d] comparing: %d and %d\n", threadIdx.x, arr[i], arr[i+half]); */
+        /* printf("[%d] comparing: %d and %d\n", */
+        /*        threadIdx.x, arr[i], arr[i+half]); */
         printf("[%d] comparing: %d and %d\n", threadIdx.x, i, i+half);
     }
 }
