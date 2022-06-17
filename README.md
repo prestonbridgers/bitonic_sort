@@ -22,6 +22,10 @@ June 16, 2022: 2pm-4pm (Class Time: Thinking...)
 June 17, 2022: 10am-11am (Setup the cuda code with makefiles, helpers, etc.
 Can't get any print outs from the kernels...)
 
+June 17, 2022: 11:30am-12:30pm (Got the indexing math working during the initial
+kernel calls for each stage of the algorithm. The values retrieved from arr
+are wrong, though. Probably some issue with the copy from host to device.)
+
 ### Jacob Villemagne
 
 June 15, 2022: 2pm-4pm (Class Time: Started OpenMPI implementation)
