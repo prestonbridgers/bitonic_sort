@@ -336,36 +336,6 @@ main(int argc, char *argv[]) {
     int slice_size = size/numP;
     sliceSet = malloc (sizeof(int) * slice_size);
 
-    // Process 0 will send the other processes there chunk of the data
-    if (myId == 0) {
-        for (int i = 1; i < numP; i++) {
-            // Sending each process there chuck of data
-            MPI_Send(&dataSet[i * slice_size],  //From dataSet starting at myId (i) * size/numP
-                     slice_size,                // Count
-                     MPI_INT,                   // Datatype
-                     i,                         // Destination
-                     1,                       // tag ??
-                     MPI_COMM_WORLD);           // Comm ??
-        }
-    } else {
-        //Processes receving there slice of data
-        MPI_Recv(sliceSet,          // Where to
-                 slice_size,        // How much
-                 MPI_INT,           // Datatype
-                 0,                 // Where from
-                 1,                 // tag??
-                 MPI_COMM_WORLD,    // Comm??
-                 0);                // Status??
-    }
-
-    MPI_Barrier(MPI_COMM_WORLD);
-
-    if (myId == 0) {
-        for (int j = 0; j < slice_size; j++) {
-            sliceSet[j] = dataSet[j];
-        }
-    }
-
     MPI_Barrier(MPI_COMM_WORLD);
 
     print_array(sliceSet,slice_size,"MINI set");
