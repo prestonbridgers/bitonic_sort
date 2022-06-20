@@ -32,6 +32,12 @@ of each stage. Need to figure out how I want to handle the intermediary swapping
 steps of each stage. Another loop that calls more kernels? Recursive kernel
 launches? Decisions decisions...)
 
+June 20, 2022: 2pm-4pm (Added a convenient way of toggling debug
+output/behavior. Need to add an inner loop that launches kernels for each 
+intermediary step for the stages. Made the algorithm use more than a single
+CUDA block allowing us to sort meaningfully large arrays. I.E. Arrays of size
+greater than 2^21. I think this should be completely working by tomorrow.)
+
 ### Jacob Villemagne
 
 June 15, 2022: 2pm-4pm (Class Time: Started OpenMPI implementation)
