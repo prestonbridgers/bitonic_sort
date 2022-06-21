@@ -29,14 +29,32 @@ d_bitonic_merge_kernel(int *arr, long arr_size, long local_size)
     int order = !(tid % 2);
 
     if (start_idx >= arr_size) return;
-
 #ifdef DEBUG
-    printf("[%ld] local_size: %ld\tstart: %ld\tend: %ld\torder: %d\n",
-            tid, local_size, start_idx, end_idx + half - 1, order);
+    int color;
+    switch (tid) {
+        case 0:
+            color = 31;
+            break;
+        case 1:
+            color = 33;
+            break;
+        case 2:
+            color = 36;
+            break;
+        case 3:
+            color = 93;
+            break;
+        default:
+            color = 37;
+            break;
+    }
+    printf("\033[%d;40m[%ld] local_size: %ld\tstart: %ld\tend: %ld\torder: %d\n",
+            color, tid, local_size, start_idx, end_idx + half - 1, order);
+    __syncthreads();
 #endif
     for (i = start_idx; i < end_idx; i++) {
 #ifdef DEBUG
-        printf("[%ld] comparing: %d and %d\n",
+        printf("\033[%d;40m[%ld] comparing: %d and %d\n", color,
                tid, arr[i], arr[i+half]);
 #endif
 
@@ -47,8 +65,9 @@ d_bitonic_merge_kernel(int *arr, long arr_size, long local_size)
             arr[i+half] = tmp;
         }
 #ifdef DEBUG
-        printf("[%ld] After Swap: %d and %d\n",
+        printf("\033[%d;40m[%ld] After Swap: %d and %d\n", color,
                tid, arr[i], arr[i+half]);
+        printf("\033[37;40m");
 #endif
     }
 
