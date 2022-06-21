@@ -21,10 +21,14 @@ __global__ void
 d_bitonic_merge_kernel(int *arr, long arr_size, long local_size, long step)
 {
     long i;
-    long tid = gridDim.x*blockIdx.x+threadIdx.x;
+    long tid = blockDim.x*blockIdx.x+threadIdx.x;
     long start_idx = tid * local_size;
 
-    long aoe = pow(2, step);
+    long aoe = 1;
+    for (int j = 0; j < step; j++) {
+        aoe *= 2;
+    }
+
     long tmp = tid % (2*aoe);
 
     int order;
@@ -33,9 +37,8 @@ d_bitonic_merge_kernel(int *arr, long arr_size, long local_size, long step)
     else
         order = DESCENDING;
 
-    int half = local_size / 2;
+    long half = local_size / 2;
     long end_idx = start_idx + half;
-    /* int order = !(tid % 2); */
 
     if (start_idx >= arr_size) return;
 #ifdef DEBUG
@@ -74,8 +77,8 @@ d_bitonic_merge_kernel(int *arr, long arr_size, long local_size, long step)
             arr[i+half] = tmp;
         }
 #ifdef DEBUG
-        printf("\033[%d;40m[%ld] After Swap: %d and %d\n", color,
-               tid, arr[i], arr[i+half]);
+        printf("\033[%d;40m[%ld] After Swap: %d and %d (order: %d) (%ld < %ld)\n", color,
+               tid, arr[i], arr[i+half], order, tmp, aoe);
         printf("\033[37;40m");
 #endif
     }
@@ -94,7 +97,7 @@ bitonic_sort(int *arr, long size)
 {
     long num_elems_per_subarray = 1;
     /* long num_subarrays = size / num_elems_per_subarray; */
-    //long num_threads = num_subarrays / 2;
+    /* long num_threads = num_subarrays / 2; */
     long stage = 0;
 
     // Copying array to cuda device
@@ -108,8 +111,8 @@ bitonic_sort(int *arr, long size)
 #ifdef DEBUG
         printf("\n~~~~~~~~~~~~~~~~~~~~~~~Stage %ld~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
                 stage);
-        printf("num_elems_per_subarray: %ld\nnum_blocks: %ld\nnum_threads: %ld\n\n",
-                num_elems_per_subarray, num_subarrays, num_threads);
+        /* printf("num_elems_per_subarray: %ld\nnum_blocks: %ld\nnum_threads: %ld\n\n", */
+        /*         num_elems_per_subarray, num_subarrays, num_threads); */
 #endif
 
         // Call kernel with grid=1,1,1 block=num_threads,1,1
@@ -128,17 +131,15 @@ bitonic_sort(int *arr, long size)
 #ifdef DEBUG
             printf("\n~~~~~~~~~~~~~~~~~~~~~~~Step %ld~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n",
                     step);
-            printf("step_num_elems_per_subarray: %ld\nstep_num_blocks: %ld\nstep_num_threads: %ld\n\n",
-                    step_num_elems_per_subarray, step_num_subarrays, step_num_threads);
+            /* printf("step_num_elems_per_subarray: %ld\nstep_num_blocks: %ld\nstep_num_threads: %ld\n\n", */
+            /*         step_num_elems_per_subarray, step_num_subarrays, step_num_threads); */
 #endif
             int step_num_blocks = SDIV(step_num_threads, MAX_THREADS);
-            dim3 grid(step_num_blocks,1,1);
+            dim3 grid(1048576,1,1);
             dim3 block(MAX_THREADS,1,1);
             d_bitonic_merge_kernel<<<grid, block>>>(d_arr, size, step_size, step);
             CUERR;
-#ifdef DEBUG
             cudaDeviceSynchronize();
-#endif
 
 #ifdef DEBUG
             printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -239,7 +240,7 @@ main(int argc, char *argv[])
     TIMERSTART(sort_time);
     bitonic_sort(arr, arr_size);
     TIMERSTOP(sort_time);
-    float time = TIMEELAPSED(sort_time);
+    /* float time = TIMEELAPSED(sort_time); */
     /* printf("Time: %.5f\n", time / 1000); */
 
     print_array(arr, arr_size);
