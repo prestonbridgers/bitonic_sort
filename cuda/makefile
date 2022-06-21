@@ -1,8 +1,8 @@
 NVCC = /usr/bin/nvcc
 CC = g++
 
-#DEBUGFLAGS=
-DEBUGFLAGS=-D DEBUG
+DEBUGFLAGS=
+#DEBUGFLAGS=-D DEBUG
 
 #No optmization flags
 #--compiler-options sends option to host compiler; -Wall is all warnings
