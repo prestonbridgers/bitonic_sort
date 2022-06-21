@@ -46,6 +46,10 @@ June 21, 2022: 10am-12noon (The implementation works for array sizes up to 2^11.
 Beyond that, it very nearly works, but I'll have to do some more digging to
 figure out why. At least we have proof of concept at this point...)
 
+June 21, 2022: 2pm-4pm (The implementation works for array sizes that are quite
+large. TODO: Calculate the exact number of cuda blocks we need instead of
+hardcoding the value in and CLEAN UP THE CODE :))
+
 ### Jacob Villemagne
 
 June 15, 2022: 2pm-4pm (Class Time: Started OpenMPI implementation)
