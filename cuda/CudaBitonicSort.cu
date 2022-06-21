@@ -136,7 +136,9 @@ bitonic_sort(int *arr, long size)
             dim3 block(MAX_THREADS,1,1);
             d_bitonic_merge_kernel<<<grid, block>>>(d_arr, size, step_size, step);
             CUERR;
+#ifdef DEBUG
             cudaDeviceSynchronize();
+#endif
 
 #ifdef DEBUG
             printf("\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n");
@@ -233,9 +235,13 @@ main(int argc, char *argv[])
     /* print_array(arr, arr_size, label1); */
 
     // Perform the sort
+    TIMERSTART(sort_time);
     bitonic_sort(arr, arr_size);
+    TIMERSTOP(sort_time);
+    float time = TIMEELAPSED(sort_time);
+    printf("Time: %.5f\n", time / 1000);
 
-    print_array(arr, arr_size);
+    /* print_array(arr, arr_size); */
 
 	return EXIT_SUCCESS;	
 }
