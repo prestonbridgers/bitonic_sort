@@ -42,6 +42,10 @@ June 20, 2022: 9pm-10pm (Colorized output to reduce eye strain trying to parse
 it when debugging. Quality of life improvement that I should have done ages
 ago...)
 
+June 21, 2022: 10am-12noon (The implementation works for array sizes up to 2^11.
+Beyond that, it very nearly works, but I'll have to do some more digging to
+figure out why. At least we have proof of concept at this point...)
+
 ### Jacob Villemagne
 
 June 15, 2022: 2pm-4pm (Class Time: Started OpenMPI implementation)
