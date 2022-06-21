@@ -26,7 +26,7 @@ Jacob Villemagne's Work here
 
 -- Jun 17 Out of class hours --
 
-11:00 - ...
+11:00 - 2:00
 
     -- Decided to scrap the idea of process 0 promping the user for a input value
 
@@ -47,3 +47,14 @@ Jacob Villemagne's Work here
         -- The sliceArray will be the chunch of data each array works on sorting
         
     -- Currently working on process 0 sending all of the other processes there chunck of data
+
+-- Jun 20 in class hours --
+
+2:00 - 4:00
+
+-- Got Process 0 sending the dataset to the other processes
+-- Working on the sorting alforithm now
+-- Implemented the sequential sort, when bitonic works I will be able to compare the difforence between the two
+
+
+
