@@ -23,8 +23,6 @@ generateDataSet(int dataSet[],int size) {
     for ( int index = 0; index < size; ++index) {
         dataSet[index] = index;
     }
-    
-
 }
 
 /* Pretty prints the contents of an integer array.
@@ -96,70 +94,12 @@ SelectionSort(int a[],int b[], int size) {
      }
 }
 
-/* Performs the merging of bitonic sequences for bitonic sort.
- *
- * arr      - The array to be merged.
- * arr_size - The size of the array (number of elements).
- * order    - The order which the elements should be merged.
- *            ASCENDING or DESCENDING
- */
-void
-merge_bitonic(int *arr, const int arr_size, short order)
-{
-    // Base case
-    if (arr_size == 1) return;
-
-    int i;
-    int half = arr_size / 2;
-
-    // Merge the array
-    for (i = 0; i < half; i++) {
-        if (order == (arr[i] > arr[i+half])) {
-            int tmp = arr[i];
-            arr[i] = arr[i+half];
-            arr[i+half] = tmp;
-        }
-    }
-
-    // Keep merging untill we're done
-    merge_bitonic(arr, half, order);
-    merge_bitonic(&arr[half], half, order);
-}
-
-/* Performs a bitonic sort on an array arr of size arr_size in
- * ASCENDING or DESCENDING order.
- *
- * arr      - The array to sort.
- * arr_size - The size of the array (number of elements).
- * order    - The order in which to sort the array (ASCENDING or DESCENDING).
- */
-void
-sort_bitonic(int *arr, const int arr_size, short order)
-{
-    //base case
-    if (arr_size == 1) return;
-
-    // Split the array in half
-    int half = arr_size / 2;
-
-    // Build the ascending first half
-    sort_bitonic(arr, half, ASCENDING);
-
-    // Build the descending second half
-    sort_bitonic(&arr[half], half, DESCENDING);
-
-    // Merge the two halves
-    merge_bitonic(arr, arr_size, order);
-}
-
-
-//function cmpfunc: needed for quicksort
 int cmpfunc(const void *a, const void *b){
     return ( *(int*)a - *(int*)b);
 }
 
 //                 lowerBound();
-void lowerBound(int size, int * dataSet, int * workSet) {
+void lowerBound(int size, int * dataSet, int * workSet,int myId) {
     for (int i = 0; i < size; i++) {
         if (workSet[i] <= dataSet[size - 1 - i]) {
             dataSet[size - 1 - i] = workSet[i];
@@ -168,9 +108,11 @@ void lowerBound(int size, int * dataSet, int * workSet) {
         }
     }
     qsort(dataSet, size, sizeof(int), cmpfunc);
+    //print_array(dataSet,size,"LowerBound",myId);
+
 }
 
-void upperBound(int size, int * dataSet, int * workSet) {
+void upperBound(int size, int * dataSet, int * workSet,int myId) {
     for (int i = 0; i < size; i++) {
         if (workSet[size - 1 - i] >= dataSet[i]) {
             dataSet[i] = workSet[size - 1 - i];
@@ -179,6 +121,8 @@ void upperBound(int size, int * dataSet, int * workSet) {
         }
     }
     qsort(dataSet, size, sizeof(int), cmpfunc);
+    //print_array(dataSet,size,"UPPERBOUND",myId);
+
 }
 
 /* 
@@ -188,15 +132,19 @@ int
 main(int argc, char *argv[]) {
 
     int * dataSet = NULL;   // This is our dataset
-    int * temp = NULL;      // temp array needed for swaping numbers around
-    int * workSet = NULL;     
+    int * temp = NULL;      // temp array needed for swaping numbers around to randomize our dataSet
+    int * workSet = NULL;   // This is a array used durring sorting to allow processes to focus on the group of numbers they need to sort  
+    int * theCollective = NULL;
 
 
     int exp,                // This is the input given by the user as a command line argument
-    numP,                   // Number of processes
-    myId,                   // id for a given process
-    size;                   // This is 2^X (X is the exp value receved from the user)
+        numP,               // Number of processes
+        myId,               // id for a given process
+        size;               // This is 2^X (X is the exp value receved from the user)
 
+    double time,            // Total ammount of time that the sort has taken
+           timeStart,       // Var to start the timmer on the sort
+           timeEnd;         // Var to end the timmer on the sort
 
     // Initialize the MPI environment
     MPI_Init(&argc,&argv);
@@ -216,47 +164,59 @@ main(int argc, char *argv[]) {
     MPI_Barrier(MPI_COMM_WORLD);
     /* TESTING CODE */
     
-     // 2^X (X being our input to make sure we only work with numbers the Bitonic sort can handle)
-    size = pow(2, exp);
-    dataSet = malloc (sizeof(int) * size); // Dynamically allocate space for the entire dataset
-    workSet = malloc (sizeof(int) * size); 
+    // 2 ^ x
+    size = pow(2, exp); // X being our input to make sure we only work with numbers the Bitonic sort can handle
+    dataSet = malloc (sizeof(int) * size); // Dynamically allocate space for the  dataset
+    workSet = malloc (sizeof(int) * size); // Dynamically allocate space for a working data 
 
 
+    /* 
+        1) Main Thread filling our dataset with numbers.
+        2) Then randomizing the elements in the array to be sorted bitonically. 
+    */
     if (myId == 0) {
 
+        // Allocate space for a temp array to be used for the randomization method
         temp = malloc (sizeof(int) * size); 
+        //printf("Size: %d\n",size);
 
-        printf("Size: %d\n",size);
-
+        // Fill our dataSet array with numbers (0 - 2^X)
         generateDataSet(dataSet,size); // Fill the dataSet with numbers (They will be sorted)
-        print_array(dataSet,size,"Inital DataSet",myId);
+        //print_array(dataSet,size,"Inital DataSet",myId); /// TEST CODE - PRINT ///
 
+        // Randomize that array so we can use our bitonic sorting algorithm
         randomizeData(dataSet, temp, size); // This function will randomize the data set so we can use Bitonic sort
-        print_array(dataSet,size,"Randomized DataSet",myId);
+        //print_array(dataSet,size,"Randomized DataSet",myId); /// TEST CODE - PRINT ///
 
+        free(temp);
     }
 
-    MPI_Barrier(MPI_COMM_WORLD);
+    MPI_Barrier(MPI_COMM_WORLD);     // Have all other threads wait on main thread to finish
 
-
-    // Send all of the processes (NOT 0 THO) the dataSet
+    /* 
+        The main thread has the dataset, 
+        We need to send all of the other threads the dataset,
+        Threads need access to data to sort it
+    */
     MPI_Bcast(
-        dataSet,
-        size,
-        MPI_INT,
-        0,
-        MPI_COMM_WORLD
+        dataSet,        // Data we want to send to all of the other threads
+        size,           // Count of data we are sending
+        MPI_INT,        // Datatype of what we are sending (int)
+        0,              // Who is sending the data
+        MPI_COMM_WORLD  // MPI Comm
     );
-    MPI_Barrier(MPI_COMM_WORLD);
-    //print_array(dataSet,size,"DataSet");
+
+    MPI_Barrier(MPI_COMM_WORLD); // wait for bcast to finish sending the array to everyone
+
+    //print_array(dataSet,size,"DataSet"); /// TEST CODE - PRINT ///
+    // int countI = 0; /// TEST CODE - counting loop iteration ///
+    // int countJ = 0; /// TEST CODE - counting loop iteration ///
 
 
-    /* Sequental SORT CODE */
-    // if (myId == 0) {
-    //     sort_bitonic(dataSet,size,ASCENDING);
-    //     //print_array(dataSet, size, "Final");
-    // }
-    /* Sequental SORT CODE */
+    // Now that we are ready to sort we need to keep track of how long it takes to be able to calculate speedup later
+    if (myId == 0) {
+        timeStart = MPI_Wtime(); // Use MPI_Wtime function to start a timmer
+    }
 
     /***********************************************/
                    /* Bitonic Sort */
@@ -264,11 +224,16 @@ main(int argc, char *argv[]) {
 
     MPI_Status status;
 
-    for (int i = 0; i < exp; i++) {
-        for (int j = 0; j <=0; j--) {
-            int workingID = myId^(1 << j);
-            printf("%d\n",workingID);
-            if ( (((myId>>(i + 1)) % 2 == 0) && ((myId >> j) % 2 == 0)) || ((myId>>(i + 1)) % 2 != 0 && (myId >> j) % 2 != 0)) {
+    int dem = (int)log2(numP);
+
+    for (int i = 0; i < dem; i++) {
+       // countI++;
+        for (int j = i; j >= 0; j--) {
+            int action = (((myId >> (i + 1)) % 2 == 0) && ((myId >> j) % 2 == 0)) || (((myId >> (i + 1)) % 2 != 0 && (myId >> j) % 2 != 0));
+            int workingID = myId ^ (1 << j);
+            //countJ++;
+            //printf("Thread: [%d] +++++ WorkingId = %d +++++ Loop cycle I {%d} +++++ Loop cycle J <%d>\n",myId, workingID,countI,countJ);
+            if (action) {
                 MPI_Send(
                     dataSet,
                     size,
@@ -288,7 +253,7 @@ main(int argc, char *argv[]) {
                     &status
                 );
 
-                lowerBound(size,dataSet,workSet);
+                lowerBound(size,dataSet,workSet,myId);
             } else {
                 MPI_Recv(
                     workSet,
@@ -308,8 +273,7 @@ main(int argc, char *argv[]) {
                     i,
                     MPI_COMM_WORLD
                 );
-
-                upperBound(size,dataSet,workSet);
+                upperBound(size,dataSet,workSet,myId);
             }
         }
     }
@@ -319,15 +283,68 @@ main(int argc, char *argv[]) {
     /***********************************************/
                    /* Bitonic Sort */
     /***********************************************/
+    if (myId == 0)
+        timeEnd = MPI_Wtime();
+
+    if (myId == 0) 
+    printf("\n/***********************************************/\n\t\t/* Sorted Array */\n/***********************************************/\n");
+    MPI_Barrier(MPI_COMM_WORLD); 
+    print_array(dataSet,size,"Should be sorted",myId);
+    MPI_Barrier(MPI_COMM_WORLD);
+    if (myId == 0) {
+        time = timeEnd - timeStart;
+        printf("\nTime Passed = %f\n",time);
+    }
+
+    theCollective = malloc (sizeof(int) * (size*numP));
+
+    MPI_Gather(
+        dataSet,
+        size,
+        MPI_INT,
+        theCollective,
+        size,
+        MPI_INT,
+        0,
+        MPI_COMM_WORLD
+    );
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    // if (myId == 0) {
-    //     print_array(dataSet,size,"Should be sorted");
-    // }
+    if (myId == 0)
+    print_array(theCollective,size*numP,"REAL ARRAY",myId);
 
+    MPI_Barrier(MPI_COMM_WORLD);
+
+    temp = malloc (sizeof(int) * size);
+    for (int i = 0; i < size; i++) {
+        temp[i] = (-1);
+    }
+
+    if (myId == 0) {
+
+        int check;
+
+        for (int i = 0; i < (size*numP); i++) {
+            check = theCollective[i];
+            if (temp[i] == -1) {
+                if (i == 0) {
+                    temp[i] = theCollective[i];
+                } else if (check != temp[i-1]) {
+                    temp[i] = theCollective[i];
+                }
+            } else {
+                break;
+            }
+        }
+
+        print_array(temp,size,"REAL ARRAY",myId);
+    }
+
+    
+    
     free(dataSet);
-    free(temp);
+    free(workSet);
 
 
     MPI_Finalize();

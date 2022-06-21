@@ -56,5 +56,15 @@ Jacob Villemagne's Work here
 -- Working on the sorting alforithm now
 -- Implemented the sequential sort, when bitonic works I will be able to compare the difforence between the two
 
+-- June 20 out of class hours --
 
+1:00 - 2:00
+9:00 - 10:00
 
+-- June 21 in class hours --
+
+2:00 - 4:00
+
+-- June 21 out of class hours --
+
+12:00 - 2:00
