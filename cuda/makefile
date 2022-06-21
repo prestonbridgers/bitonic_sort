@@ -10,10 +10,10 @@ DEBUGFLAGS=
 
 #Optimization flags: -O2 gets sent to host compiler; -Xptxas -O2 is for
 #optimizing PTX 
-NVCCFLAGS = -c -O2 -Xptxas -O2 --compiler-options -Wall 
+#NVCCFLAGS = -c -O2 -Xptxas -O2 --compiler-options -Wall 
 
 #Flags for debugging
-#NVCCFLAGS = -c -G --compiler-options -Wall --compiler-options -g
+NVCCFLAGS = -c -G --compiler-options -Wall --compiler-options -g
 
 OBJS = wrappers.o CudaBitonicSort.o
 .SUFFIXES: .cu .o .h 

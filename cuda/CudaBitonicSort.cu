@@ -176,8 +176,9 @@ init_array(int *arr, const long size) {
     int i;
 
     for (i = 0; i < size; i++) {
-        arr[i] = rand() % ARR_MAX_INT;
+        /* arr[i] = rand() % ARR_MAX_INT; */
         /* arr[i] = i; */
+        arr[i] = size - i;
     }
 }
 
@@ -239,9 +240,9 @@ main(int argc, char *argv[])
     bitonic_sort(arr, arr_size);
     TIMERSTOP(sort_time);
     float time = TIMEELAPSED(sort_time);
-    printf("Time: %.5f\n", time / 1000);
+    /* printf("Time: %.5f\n", time / 1000); */
 
-    /* print_array(arr, arr_size); */
+    print_array(arr, arr_size);
 
 	return EXIT_SUCCESS;	
 }
