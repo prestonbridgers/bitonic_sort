@@ -96,150 +96,6 @@ SelectionSort(int a[],int b[], int size) {
      }
 }
 
-int * compareLowBound(int j, int * dataSet, int size, int myId) {
-    int min, send_counter, recv_counter;
-    int * bufferSend = NULL;
-    int * bufferRecv = NULL;
-
-    send_counter = 0;
-    bufferSend = malloc((size + 1) * sizeof(int));
-
-    MPI_Send(&dataSet[size-1],
-             1,
-             MPI_INT,
-             myId ^ (1 << j),
-             0,
-             MPI_COMM_WORLD);
-    
-    bufferRecv = malloc((size + 1) * sizeof(int));
-
-    MPI_Recv(&min,
-             1,
-             MPI_INT,
-             myId ^ (1 << j),
-             0,
-             MPI_COMM_WORLD,
-             MPI_STATUS_IGNORE);
-    
-    for (int i = 0; i < size; i++) {
-        if(dataSet[i] > min) {
-            send_counter++;
-        } else {
-            break;
-        }
-    }
-
-    bufferSend[0] = send_counter;
-
-    MPI_Send(bufferSend,
-             send_counter,
-             MPI_INT,
-             myId ^ (1 << j),
-             0,
-             MPI_COMM_WORLD);
-    
-    MPI_Recv(bufferRecv,
-             size,
-             MPI_INT,
-             myId ^ (1 << j),
-             0,
-             MPI_COMM_WORLD,
-             MPI_STATUS_IGNORE);
-
-    for (int i = 0; i < bufferRecv[0] + 1; i++) {
-        if (dataSet[size - 1] < bufferRecv[i]) {
-            dataSet[size - 1] = bufferRecv[i];
-        } else {
-            break;
-        }
-    }
-
-    free(bufferRecv);
-    free(bufferSend);
-
-    return dataSet;
-
-}
-
-int * compareUpperBound(int j, int size, int myId, int * dataSet) {
-    int max, send_counter, recv_counter;
-    int * bufferSend = NULL;
-    int * bufferRecv = NULL;
-
-    bufferRecv = malloc ((size + 1) * sizeof(int));
-
-    MPI_Recv(
-        &max,
-        1,
-        MPI_INT,
-        myId ^ (1 << j),
-        0,
-        MPI_COMM_WORLD,
-        MPI_STATUS_IGNORE
-    );
-
-    send_counter = 0;
-    bufferSend = malloc((size + 1) * sizeof(int));
-
-    MPI_Send(
-        &dataSet[0],
-        1,
-        MPI_INT,
-        myId ^ (1 << j),
-        0,
-        MPI_COMM_WORLD
-    );
-
-    for (int i = 0; i < size; i++) {
-        if (dataSet[i] < max) {
-            bufferSend[send_counter + 1] = dataSet[i];
-            send_counter++;
-        } else {
-            break;
-        }
-    }
-
-    MPI_Recv(
-        bufferRecv,
-        size,
-        MPI_INT,
-        myId ^ (1 << j),
-        0,
-        MPI_COMM_WORLD,
-        MPI_STATUS_IGNORE
-    );
-
-    recv_counter = bufferRecv[0];
-
-    bufferSend[0] = send_counter;
-
-    MPI_Send(
-        bufferSend,
-        send_counter,
-        MPI_INT,
-        myId ^ (1 << j),
-        0,
-        MPI_COMM_WORLD
-    );
-
-    for (int i = 1; i < recv_counter + 1; i++) {
-        if (bufferRecv[i] > dataSet[0]) {
-            dataSet[0] = bufferRecv[i];
-        } else {
-            break;
-        }
-    }
-
-    //print_array(dataSet,size,"LOWERBOUD");
-
-
-    free(bufferSend);
-    free(bufferRecv);
-
-    return dataSet;
-
-}
-
 /* Performs the merging of bitonic sequences for bitonic sort.
  *
  * arr      - The array to be merged.
@@ -296,6 +152,35 @@ sort_bitonic(int *arr, const int arr_size, short order)
     merge_bitonic(arr, arr_size, order);
 }
 
+
+//function cmpfunc: needed for quicksort
+int cmpfunc(const void *a, const void *b){
+    return ( *(int*)a - *(int*)b);
+}
+
+//                 lowerBound();
+void lowerBound(int size, int * dataSet, int * workSet) {
+    for (int i = 0; i < size; i++) {
+        if (workSet[i] <= dataSet[size - 1 - i]) {
+            dataSet[size - 1 - i] = workSet[i];
+        } else {
+            break;
+        }
+    }
+    qsort(dataSet, size, sizeof(int), cmpfunc);
+}
+
+void upperBound(int size, int * dataSet, int * workSet) {
+    for (int i = 0; i < size; i++) {
+        if (workSet[size - 1 - i] >= dataSet[i]) {
+            dataSet[i] = workSet[size - 1 - i];
+        } else {
+            break;
+        }
+    }
+    qsort(dataSet, size, sizeof(int), cmpfunc);
+}
+
 /* 
 *   main method
 */
@@ -304,6 +189,8 @@ main(int argc, char *argv[]) {
 
     int * dataSet = NULL;   // This is our dataset
     int * temp = NULL;      // temp array needed for swaping numbers around
+    int * workSet = NULL;     
+
 
     int exp,                // This is the input given by the user as a command line argument
     numP,                   // Number of processes
@@ -332,6 +219,8 @@ main(int argc, char *argv[]) {
      // 2^X (X being our input to make sure we only work with numbers the Bitonic sort can handle)
     size = pow(2, exp);
     dataSet = malloc (sizeof(int) * size); // Dynamically allocate space for the entire dataset
+    workSet = malloc (sizeof(int) * size); 
+
 
     if (myId == 0) {
 
@@ -372,19 +261,61 @@ main(int argc, char *argv[]) {
     /***********************************************/
                    /* Bitonic Sort */
     /***********************************************/
-    int length = (int)log2(numP);
-    
-    for (int i = 0; i < length; i++) {
-        for (int j = i; j >= 0; j--) {
-            if (((myId >> (i + 1)) % 2 == 0 && (myId >> j) % 2 == 0) || ((myId >> (i + 1)) % 2 != 0 && (myId >> j) % 2 != 0)) {
-                dataSet = compareLowBound(j,dataSet,size,myId);
+
+    MPI_Status status;
+
+    for (int i = 0; i < exp; i++) {
+        for (int j = 0; j <=0; j--) {
+            int workingID = myId^(1 << j);
+            printf("%d\n",workingID);
+            if ( (((myId>>(i + 1)) % 2 == 0) && ((myId >> j) % 2 == 0)) || ((myId>>(i + 1)) % 2 != 0 && (myId >> j) % 2 != 0)) {
+                MPI_Send(
+                    dataSet,
+                    size,
+                    MPI_INT,
+                    workingID,
+                    i,
+                    MPI_COMM_WORLD
+                );
+
+                MPI_Recv(
+                    workSet,
+                    size,
+                    MPI_INT,
+                    workingID,
+                    i,
+                    MPI_COMM_WORLD,
+                    &status
+                );
+
+                lowerBound(size,dataSet,workSet);
             } else {
-                dataSet = compareUpperBound(j,size,myId,dataSet);
+                MPI_Recv(
+                    workSet,
+                    size,
+                    MPI_INT,
+                    workingID,
+                    i,
+                    MPI_COMM_WORLD,
+                    &status
+                );
+
+                MPI_Send(
+                    dataSet,
+                    size,
+                    MPI_INT,
+                    workingID,
+                    i,
+                    MPI_COMM_WORLD
+                );
+
+                upperBound(size,dataSet,workSet);
             }
-
         }
-
     }
+
+
+    MPI_Barrier(MPI_COMM_WORLD); 
     /***********************************************/
                    /* Bitonic Sort */
     /***********************************************/
