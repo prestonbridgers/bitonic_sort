@@ -38,6 +38,10 @@ intermediary step for the stages. Made the algorithm use more than a single
 CUDA block allowing us to sort meaningfully large arrays. I.E. Arrays of size
 greater than 2^21. I think this should be completely working by tomorrow.)
 
+June 20, 2022: 9pm-10pm (Colorized output to reduce eye strain trying to parse
+it when debugging. Quality of life improvement that I should have done ages
+ago...)
+
 ### Jacob Villemagne
 
 June 15, 2022: 2pm-4pm (Class Time: Started OpenMPI implementation)
