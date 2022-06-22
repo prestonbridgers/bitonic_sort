@@ -135,6 +135,7 @@ main(int argc, char *argv[]) {
     int * temp = NULL;      // temp array needed for swaping numbers around to randomize our dataSet
     int * workSet = NULL;   // This is a array used durring sorting to allow processes to focus on the group of numbers they need to sort  
     int * theCollective = NULL;
+    int * correctCheck = NULL;
 
 
     int exp,                // This is the input given by the user as a command line argument
@@ -168,7 +169,7 @@ main(int argc, char *argv[]) {
     size = pow(2, exp); // X being our input to make sure we only work with numbers the Bitonic sort can handle
     dataSet = malloc (sizeof(int) * size); // Dynamically allocate space for the  dataset
     workSet = malloc (sizeof(int) * size); // Dynamically allocate space for a working data 
-
+    correctCheck = malloc (sizeof(int) * size);
 
     /* 
         1) Main Thread filling our dataset with numbers.
@@ -187,6 +188,10 @@ main(int argc, char *argv[]) {
         // Randomize that array so we can use our bitonic sorting algorithm
         randomizeData(dataSet, temp, size); // This function will randomize the data set so we can use Bitonic sort
         //print_array(dataSet,size,"Randomized DataSet",myId); /// TEST CODE - PRINT ///
+
+        correctCheck = dataSet;
+        //print_array(dataSet,size,"Check01",myId); /// TEST CODE - PRINT ///
+        //print_array(correctCheck,size,"Check02",myId); /// TEST CODE - PRINT ///
 
         free(temp);
     }
@@ -324,24 +329,30 @@ main(int argc, char *argv[]) {
     if (myId == 0) {
 
         int check;
+        int count = 0;
 
         for (int i = 0; i < (size*numP); i++) {
             check = theCollective[i];
-            if (temp[i] == -1) {
-                if (i == 0) {
-                    temp[i] = theCollective[i];
-                } else if (check != temp[i-1]) {
-                    temp[i] = theCollective[i];
+            if (temp[count] == -1) {
+                if (check != temp[count-1] || temp[0]) {
+                    temp[count] = theCollective[i];
+                    count++;
+                    //printf("%d",temp[i]);
                 }
             } else {
                 break;
             }
         }
-
-        print_array(temp,size,"REAL ARRAY",myId);
+        //print_array(temp,size,"REAL ARRAY",myId);
     }
 
-    
+    if (myId == 0) {
+        if (correctCheck == temp) {
+            printf("Sort was a success, TEST PASS")
+        } else {
+            printf("");
+        }
+    }
     
     free(dataSet);
     free(workSet);
