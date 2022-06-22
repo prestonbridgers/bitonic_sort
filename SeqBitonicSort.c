@@ -126,7 +126,8 @@ print_usage(int argc, char **argv)
  *
  * The program outputs the time taken to sort the array.
  */
-int main(int argc, char *argv[])
+int
+main(int argc, char *argv[])
 {
     struct timeval tv1, tv2;
     double delta;

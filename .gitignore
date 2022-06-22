@@ -1,2 +1,4 @@
 *.o
 sort
+cuda/*.o
+cuda/sort
